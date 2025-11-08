@@ -310,6 +310,4 @@ By completing this project, you will:
 4. ✅ Apply statistical methods for anomaly detection
 5. ✅ Visualize and interpret security analysis results
 
----
 
-**End of README**
