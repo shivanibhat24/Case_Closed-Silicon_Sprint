@@ -1,7 +1,7 @@
 /*
  * File: alu_tb.v
  * Description: Comprehensive testbench for ALU Trojan detection
- * Author: Hardware Security Lab
+ * Author: Shivani Bhat
  * Date: November 2025
  * 
  * This testbench:
