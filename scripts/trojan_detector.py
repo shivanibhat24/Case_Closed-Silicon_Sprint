@@ -2,7 +2,7 @@
 """
 File: trojan_detector.py
 Description: Advanced side-channel analysis for hardware Trojan detection
-Author: Hardware Security Lab
+Author: Shivani Bhat
 Date: November 2025
 
 This script analyzes VCD files from clean and Trojan-infected designs,
