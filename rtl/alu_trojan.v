@@ -1,7 +1,7 @@
 /*
  * File: alu_trojan.v
  * Description: Trojan-infected 4-bit ALU with stealthy hardware backdoor
- * Author: Hardware Security Lab
+ * Author: Shivani Bhat
  * Date: November 2025
  * 
  * TROJAN DESCRIPTION:
