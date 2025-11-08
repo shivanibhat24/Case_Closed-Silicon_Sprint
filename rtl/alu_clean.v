@@ -1,7 +1,7 @@
 /*
  * File: alu_clean.v
  * Description: Clean 4-bit ALU implementation without any hardware Trojans
- * Author: Hardware Security Lab
+ * Author: Shivani Bhat
  * Date: November 2025
  */
 
