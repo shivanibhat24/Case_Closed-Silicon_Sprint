@@ -44,26 +44,6 @@ The infected ALU contains a sophisticated hardware backdoor with the following c
 
 ---
 
-## 📁 Project Structure
-
-```
-hardware-trojan-detection/
-├── README.md                      # This file
-├── GUIDE.md                       # Detailed usage guide
-├── rtl/
-│   ├── alu_clean.v               # Clean ALU implementation
-│   ├── alu_trojan.v              # Trojan-infected ALU
-│   └── alu_tb.v                  # Comprehensive testbench
-├── scripts/
-│   └── trojan_detector.py        # Side-channel analysis tool
-├── simulation/
-│   └── (generated VCD files)
-└── results/
-    └── (analysis reports and plots)
-```
-
----
-
 ## 🔧 Requirements
 
 ### Hardware Description
