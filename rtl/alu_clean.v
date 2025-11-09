@@ -5,6 +5,8 @@
  * Date: November 2025
  */
 
+`timescale 1ns/1ps
+
 module alu_clean (
     input wire clk,
     input wire rst_n,
