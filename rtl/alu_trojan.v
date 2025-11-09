@@ -16,6 +16,8 @@
  * 3. Minimal switching activity to evade detection
  */
 
+`timescale 1ns/1ps
+
 module alu_trojan (
     input wire clk,
     input wire rst_n,
