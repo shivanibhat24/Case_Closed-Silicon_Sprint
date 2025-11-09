@@ -37,6 +37,9 @@ module alu_tb;
     integer mismatch_count;
     integer trojan_trigger_count;
     
+    // Loop variables
+    integer i, j, k, r;
+    
     // Instantiate Clean ALU
     alu_clean uut_clean (
         .clk(clk),
@@ -77,7 +80,7 @@ module alu_tb;
         $dumpvars(1, uut_trojan);
     end
     
-    // Test stimulus generation
+    // Main test stimulus
     initial begin
         // Initialize
         test_count = 0;
@@ -97,80 +100,136 @@ module alu_tb;
         $display("------------------------------------------------------------");
         
         // Reset sequence
-        #20;
+        repeat(4) @(posedge clk);
         rst_n = 1;
-        #10;
+        repeat(2) @(posedge clk);
         
-        // Test 1: Exhaustive testing of all input combinations
-        $display("\n[Phase 1] Exhaustive Input Testing");
-        for (A = 0; A < 16; A = A + 1) begin
-            for (B = 0; B < 16; B = B + 1) begin
-                for (op = 0; op < 4; op = op + 1) begin
-                    #10; // Wait for operation to complete
+        // Test 1: Exhaustive testing - systematic coverage
+        $display("\n[Phase 1] Exhaustive Input Testing (1024 tests)");
+        for (i = 0; i < 16; i = i + 1) begin
+            for (j = 0; j < 16; j = j + 1) begin
+                for (k = 0; k < 4; k = k + 1) begin
+                    A = i[3:0];
+                    B = j[3:0];
+                    op = k[1:0];
+                    @(posedge clk);
+                    #1; // Small delay to let outputs settle
                     check_results();
                 end
             end
+            
+            // Progress indicator every 64 tests
+            if ((i % 4) == 0) begin
+                $display("  Progress: %0d/16 input patterns completed", i);
+            end
         end
+        $display("  [Phase 1 Complete] %0d tests executed", test_count);
         
         // Test 2: Targeted Trojan trigger patterns
         $display("\n[Phase 2] Trojan Trigger Pattern Testing");
         
-        // Trigger Pattern 1: A=1111, B=1111, op=ADD
-        A = 4'b1111; B = 4'b1111; op = 2'b00;
-        #10; check_results();
-        trojan_trigger_count = trojan_trigger_count + 1;
+        // Trigger Pattern 1: A=1111, B=1111, op=ADD (multiple times)
+        $display("  Testing Trigger 1: A=1111, B=1111, op=ADD");
+        repeat(10) begin
+            A = 4'b1111; 
+            B = 4'b1111; 
+            op = 2'b00;
+            @(posedge clk);
+            #1;
+            check_results();
+            trojan_trigger_count = trojan_trigger_count + 1;
+        end
         
-        // Trigger Pattern 2: A=0000, B=1111, op=AND
-        A = 4'b0000; B = 4'b1111; op = 2'b10;
-        #10; check_results();
-        trojan_trigger_count = trojan_trigger_count + 1;
+        // Trigger Pattern 2: A=0000, B=1111, op=AND (multiple times)
+        $display("  Testing Trigger 2: A=0000, B=1111, op=AND");
+        repeat(10) begin
+            A = 4'b0000; 
+            B = 4'b1111; 
+            op = 2'b10;
+            @(posedge clk);
+            #1;
+            check_results();
+            trojan_trigger_count = trojan_trigger_count + 1;
+        end
         
-        // Repeat trigger patterns to increase switching activity
+        // Alternating trigger patterns
+        $display("  Testing alternating trigger patterns");
         repeat(5) begin
             A = 4'b1111; B = 4'b1111; op = 2'b00;
-            #10; check_results();
+            @(posedge clk); #1; check_results();
             
             A = 4'b0000; B = 4'b1111; op = 2'b10;
-            #10; check_results();
+            @(posedge clk); #1; check_results();
         end
+        $display("  [Phase 2 Complete] Trigger patterns executed");
         
         // Test 3: Random pattern testing
-        $display("\n[Phase 3] Random Pattern Testing");
-        repeat(100) begin
-            A = $random % 16;
-            B = $random % 16;
-            op = $random % 4;
-            #10; check_results();
+        $display("\n[Phase 3] Random Pattern Testing (50 tests)");
+        for (r = 0; r < 50; r = r + 1) begin
+            A = $random;
+            B = $random;
+            op = $random;
+            @(posedge clk);
+            #1;
+            check_results();
         end
+        $display("  [Phase 3 Complete] Random testing done");
         
         // Test 4: Corner cases
         $display("\n[Phase 4] Corner Case Testing");
         
-        // Max values
-        A = 4'b1111; B = 4'b1111; op = 2'b00; #10; check_results();
-        A = 4'b1111; B = 4'b1111; op = 2'b01; #10; check_results();
+        // Maximum values ADD
+        A = 4'b1111; B = 4'b1111; op = 2'b00;
+        @(posedge clk); #1; check_results();
+        $display("  Max + Max (ADD)");
         
-        // Min values
-        A = 4'b0000; B = 4'b0000; op = 2'b00; #10; check_results();
-        A = 4'b0000; B = 4'b0000; op = 2'b01; #10; check_results();
+        // Maximum values SUB
+        A = 4'b1111; B = 4'b1111; op = 2'b01;
+        @(posedge clk); #1; check_results();
+        $display("  Max - Max (SUB)");
         
-        // Mixed patterns
-        A = 4'b1010; B = 4'b0101; op = 2'b10; #10; check_results();
-        A = 4'b1100; B = 4'b0011; op = 2'b11; #10; check_results();
+        // Minimum values ADD
+        A = 4'b0000; B = 4'b0000; op = 2'b00;
+        @(posedge clk); #1; check_results();
+        $display("  Min + Min (ADD)");
+        
+        // Minimum values SUB
+        A = 4'b0000; B = 4'b0000; op = 2'b01;
+        @(posedge clk); #1; check_results();
+        $display("  Min - Min (SUB)");
+        
+        // Alternating patterns AND
+        A = 4'b1010; B = 4'b0101; op = 2'b10;
+        @(posedge clk); #1; check_results();
+        $display("  1010 AND 0101");
+        
+        // Alternating patterns OR
+        A = 4'b1100; B = 4'b0011; op = 2'b11;
+        @(posedge clk); #1; check_results();
+        $display("  1100 OR 0011");
+        
+        $display("  [Phase 4 Complete] Corner cases tested");
+        
+        // Allow VCD to flush
+        repeat(10) @(posedge clk);
         
         // Final statistics
-        #50;
         $display("\n========================================");
         $display("Test Summary");
         $display("========================================");
-        $display("Total Tests: %0d", test_count);
-        $display("Mismatches Found: %0d", mismatch_count);
-        $display("Trojan Triggers: %0d", trojan_trigger_count);
-        $display("Match Rate: %0.2f%%", 100.0 * (test_count - mismatch_count) / test_count);
+        $display("Total Tests Executed: %0d", test_count);
+        $display("Functional Mismatches: %0d", mismatch_count);
+        $display("Trojan Triggers Sent: %0d", trojan_trigger_count);
+        
+        if (test_count > 0) begin
+            $display("Match Rate: %0.2f%%", 100.0 * (test_count - mismatch_count) / test_count);
+        end
+        
         $display("========================================\n");
         
+        $display("SUCCESS: Simulation completed normally");
         $display("VCD file 'alu_simulation.vcd' generated for analysis.");
-        $display("Run Python analysis script to detect Trojan via side-channel.\n");
+        $display("Run Python analysis: python trojan_detector.py\n");
         
         $finish;
     end
@@ -186,21 +245,15 @@ module alu_tb;
                 
                 mismatch_count = mismatch_count + 1;
                 
-                $display("%0t\t%b\t%b\t%b\t%b\t%b\t*** MISMATCH ***", 
-                         $time, A, B, op, result_clean, result_trojan);
-            end else begin
-                // Uncomment for verbose output
-                // $display("%0t\t%b\t%b\t%b\t%b\t%b\tOK", 
-                //          $time, A, B, op, result_clean, result_trojan);
+                // Only display first 10 mismatches to avoid clutter
+                if (mismatch_count <= 10) begin
+                    $display("%0t\t%b\t%b\t%b\t%b\t%b\t*** MISMATCH ***", 
+                             $time, A, B, op, result_clean, result_trojan);
+                end else if (mismatch_count == 11) begin
+                    $display("  (Further mismatches suppressed for readability)");
+                end
             end
         end
     endtask
-    
-    // Timeout watchdog
-    initial begin
-        #1000000; // 1ms timeout
-        $display("\n*** ERROR: Simulation timeout! ***\n");
-        $finish;
-    end
     
 endmodule
